@@ -157,6 +157,7 @@ private[spark] object SparkContextKafkaManager
     if (maxMessagesPerPartition > 0) {
       leaderOffsets.map {
         case (tp, lo) =>
+          println(currentOffsets(tp) ,maxMessagesPerPartition,lo.offset)
           tp -> lo.copy(offset = Math.min(currentOffsets(tp) + maxMessagesPerPartition, lo.offset))
       }
     } else leaderOffsets

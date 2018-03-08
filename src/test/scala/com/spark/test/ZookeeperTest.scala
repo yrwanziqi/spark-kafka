@@ -1,4 +1,4 @@
-
+/*
 package com.spark.test
 
 import org.apache.zookeeper.ZooKeeper
@@ -77,3 +77,4 @@ object ZookeeperTest {
                 JaasUtils.isZkSecurityEnabled())
   }
 }
+*/

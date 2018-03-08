@@ -73,7 +73,8 @@ private[spark] object StreamingKafkaManager
     ssc: StreamingContext,
     conf: KafkaConfig,
     fromOffset: Map[TopicAndPartition, Long],
-    msghandle: (MessageAndMetadata[K, V]) => R): InputDStream[R] = {
+    msghandle: (MessageAndMetadata[K, V]) => R  = msgHandle
+    ): InputDStream[R] = {
     if (conf.kpIsNull || conf.tpIsNull) {
       throw new SparkException(s"Configuration s kafkaParam is Null or Topics is not setted")
     }
