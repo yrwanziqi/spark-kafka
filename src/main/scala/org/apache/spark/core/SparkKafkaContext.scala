@@ -52,12 +52,24 @@ class SparkKafkaContext {
    * @description 将当前的topic的偏移量更新至最新。（相当于丢掉未处理的数据）
    * @return lastestOffsets ：返回最新的offset
    */
-  def updataOffsetToLastest(
+  def updateOffsetToLastest(
     topics: Set[String],
     kp: Map[String, String]) = {
     val lastestOffsets = SparkContextKafkaManager.getLatestOffsets(topics, kp)
     SparkContextKafkaManager.updateConsumerOffsets(kp, lastestOffsets)
     lastestOffsets
+  }
+    /**
+   * @author LMQ
+   * @description 将当前的topic的偏移量更新至最旧。
+   * @return lastestOffsets ：返回最新的offset
+   */
+  def updateOffsetToEarliest(
+    topics: Set[String],
+    kp: Map[String, String]) = {
+    val earliestOffsets = SparkContextKafkaManager.getEarliestOffsets(topics, kp)
+    SparkContextKafkaManager.updateConsumerOffsets(kp, earliestOffsets)
+    earliestOffsets
   }
   /**
    * @author LMQ

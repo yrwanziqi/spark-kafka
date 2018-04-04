@@ -53,57 +53,75 @@ private[spark] trait KafkaSparkTool {
       if (partitionsE.isLeft) throw new SparkException("get kafka partition failed:")
       val partitions = partitionsE.right.get
       //过期或者是新的groupid从哪开始读取
-      val last_earlies = if (kp.contains(WRONG_GROUP_FROM)) { kp.get(WRONG_GROUP_FROM).get.toUpperCase() } else "LAST"
+      val last_earlies = if (kp.contains(WRONG_GROUP_FROM)) {
+        kp.get(WRONG_GROUP_FROM).get.toUpperCase()
+      } else {
+        log.warn("-- Use LAST Offset (set 'wrong.groupid.from') -- ")
+        "LAST"
+      }
       val consumerOffsetsE = kc.getConsumerOffsets(groupId, partitions) //获取这个topic的每个patition的消费信息      
       if (consumerOffsetsE.isLeft) hasConsumed = false
       if (hasConsumed) {
-        val earliestLeaderOffsets = kc.getEarliestLeaderOffsets(partitions).right.get //获取最早的偏移量
-        val partLastOffsets = kc.getLatestLeaderOffsets(partitions).right
-        val consumerOffsets = consumerOffsetsE.right.get
-        //过期或者是新的groupid从哪开始读取//为了防止丢失，建议从最旧的开始
-        var newgroupOffsets = last_earlies match {
-          case "EARLIEST" => earliestLeaderOffsets
-          case _          => kc.getLatestLeaderOffsets(partitions).right.get
-        }
-        //消费的偏移量和最早的偏移量做比较（因为kafka有过期，如果太久没消费，）
-        consumerOffsets.foreach({
-          case (tp, n) =>
-            //现在数据在什么offset上
-            val earliestLeaderOffset = earliestLeaderOffsets(tp).offset
-            val lastoffset = partLastOffsets.get(tp).offset
-            if (n > lastoffset || n < earliestLeaderOffset) { //如果offset超过了最新的//消费过，但是过时了，就从最新开始消费
-              log.warn("-- Consumer offset is OutTime --- " + tp + "->" + n)
-              if (kp.contains(WRONG_GROUP_FROM)) {
-                kp.get(WRONG_GROUP_FROM).get.toUpperCase() match {
-                  case "EARLIEST" => offsets += (tp -> earliestLeaderOffset)
-                  case _          => offsets += (tp -> lastoffset)
-                }
-              } else {
-                log.warn("-- Use EARLIEST Offset (set 'wrong.groupid.from') -- ")
-                offsets += (tp -> earliestLeaderOffset)
-              }
-            } else {
-              offsets += (tp -> n)
-            }
-        })
+        offsets ++= (getEffectiveOffset(kc, kp, partitions, consumerOffsetsE, last_earlies))
       } else {
-        log.warn(" NEW  GROUP   ID  : " + groupId)
-        log.warn(" NEW  GROUP  FROM : " + last_earlies)
-        var newgroupOffsets = last_earlies match {
-          case "EARLIEST" => kc.getEarliestLeaderOffsets(partitions).right.get
-          case _          => kc.getLatestLeaderOffsets(partitions).right.get
-        }
-        //解决冷启动问题，更新一个初始为0的偏移量记录。下次启动就不会是新group了
-        updateConsumerOffsets(kp, groupId,
-          newgroupOffsets.map {
-            case (tp, offset) =>
-              offsets += (tp -> offset.offset)
-              (tp -> offset.offset)
-          })
+        offsets ++= (getNewGroupIdOffset(groupId, partitions, kp,last_earlies))
       }
     }
     offsets
   }
+   /**
+   * @author LMQ
+   * @time 2018-04-04
+   * @func 获取一个新grouid的offset （last_earlies决定是从最新还是最旧）
+   */
+  def getNewGroupIdOffset(
+    groupId: String,
+    partitions: Set[TopicAndPartition],
+    kp: Map[String, String],
+    last_earlies: String)= {
+    log.warn(" NEW  GROUP   ID  : " + groupId)
+    log.warn(" NEW  GROUP  FROM : " + last_earlies)
+    var newgroupOffsets = last_earlies match {
+      case "EARLIEST" => kc.getEarliestLeaderOffsets(partitions).right.get
+      case _          => kc.getLatestLeaderOffsets(partitions).right.get
+    }
+    //解决冷启动问题，更新一个初始为0的偏移量记录。下次启动就不会是新group了
+    val newOffset = newgroupOffsets.map { case (tp, offset) => (tp -> offset.offset) }
+    updateConsumerOffsets(kp, groupId, newOffset)
+    newOffset
+  }
+  /**
+   * @author LMQ
+   * @time 2018-04-04
+   * @func 获取有效的offset
+   */
+  def getEffectiveOffset(
+    kc: KafkaCluster,
+    kp: Map[String, String],
+    partitions: Set[TopicAndPartition],
+    consumerOffsetsE: Either[KafkaCluster.Err, Map[TopicAndPartition, Long]],
+    last_earlies: String) = {
+    val earliestLeaderOffsets = kc.getEarliestLeaderOffsets(partitions).right.get //获取最早的偏移量
+    val partLastOffsets = kc.getLatestLeaderOffsets(partitions).right
+    val consumerOffsets = consumerOffsetsE.right.get
+    //消费的偏移量和最早的偏移量做比较（因为kafka有过期，如果太久没消费，）
+    consumerOffsets.map({
+      case (tp, n) =>
+        //现在数据在什么offset上
+        val earliestLeaderOffset = earliestLeaderOffsets(tp).offset
+        val lastoffset = partLastOffsets.get(tp).offset
+        if (n > lastoffset || n < earliestLeaderOffset) { //如果offset超过了最新的//消费过，但是过时了，就从最新开始消费
+          log.warn("-- Consumer offset is OutTime --- " + tp + "->" + n)
+          last_earlies match {
+            case "EARLIEST" => (tp -> earliestLeaderOffset)
+            case _          => (tp -> lastoffset)
+          }
+        } else {
+          (tp -> n)
+        }
+    })
+  }
+
   /**
    * @author LMQ
    * @description 更新消费者的offset至zookeeper

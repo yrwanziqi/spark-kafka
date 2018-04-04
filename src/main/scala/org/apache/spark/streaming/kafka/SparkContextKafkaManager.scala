@@ -44,7 +44,7 @@ private[spark] object SparkContextKafkaManager
     val consumerOffsets: Map[TopicAndPartition, Long] =
       if (fromOffset == null) {
         val last = if (kp.contains(KAFKA_CONSUMER_FROM)) kp.get(KAFKA_CONSUMER_FROM).get
-        else defualtFrom
+                   else defualtFrom
         last.toUpperCase match {
           case "LAST"     => getLatestOffsets(topics, kp)
           case "CONSUM"   => getConsumerOffset(kp, groupId, topics)
@@ -53,6 +53,7 @@ private[spark] object SparkContextKafkaManager
           case _          => log.info(s"""${KAFKA_CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
         }
       } else fromOffset
+      
     //consumerOffsets.foreach(x=>log.info(x.toString))
     val maxMessagesPerPartition = if (kp.contains(maxMessagesPerPartitionKEY)) kp.get(maxMessagesPerPartitionKEY).get.toInt
                                   else sc.getConf.getInt(maxMessagesPerPartitionKEY, 0) //0表示没限制
@@ -157,7 +158,7 @@ private[spark] object SparkContextKafkaManager
     if (maxMessagesPerPartition > 0) {
       leaderOffsets.map {
         case (tp, lo) =>
-          println(currentOffsets(tp) ,maxMessagesPerPartition,lo.offset)
+          //println("SparkContextKafkaManager : ",tp,currentOffsets(tp) + maxMessagesPerPartition,lo.offset)
           tp -> lo.copy(offset = Math.min(currentOffsets(tp) + maxMessagesPerPartition, lo.offset))
       }
     } else leaderOffsets

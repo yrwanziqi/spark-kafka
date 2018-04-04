@@ -22,7 +22,7 @@
 		<scala.compat.version>2.10</scala.compat.version>
 	</properties>
 
-	<dependencies>
+<dependencies>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.10</artifactId>
