@@ -8,10 +8,10 @@
 * 提供 对外的 ssc创建 createDirectStream 的方法 ，用来读取kafka的数据。
 * 提供 对外的 ssc利用conf创建Dstream的方法
 * 提供 使用direct方式读取kafka数据的方法
-* 提供  "kafka.consumer.from" -> "LAST"/"CONSUM"/"EARLIEST" 参数，来动态决定获取kafka数据是从last还是从消费点开始
-* 增加 "kafka.consumer.from" -> "CUSTOM" （可以配置offset） 在配置文件里增加  kafka.offset= ${offset}
+* 提供  "kafka.consumer.from" -> "LAST"/"CONSUM"/"EARLIEST/CUSTOM" 参数，来动态决定获取kafka数据是从last还是从消费点开始
+* 增加 "kafka.consumer.from" -> "CUSTOM" : 可以配置offset在配置文件里增加  kafka.offset= ${offset}
   offset 格式为  topic,partition,offset|topic,partition,offset|topic,partition,offset
-  (当然你要自己定义获取方式也可以。这个在SparkKafkaContext已经提供了相应的方法。需要你传入 fromoffset)
+  (当然你要自己定义offset也可以。这个在SparkKafkaContext已经提供了相应的方法。需要你传入 fromoffset)
 * 提供 "wrong.groupid.from"->"EARLIEST/LAST" 参数 ，决定新group id 或者过期的 group id 从哪开始读取
 * 提供 fromoffset 参数，决定从具体的offset开始获取数据
 * 提供 rdd 更新kafka offsets到zookeeper的方法
