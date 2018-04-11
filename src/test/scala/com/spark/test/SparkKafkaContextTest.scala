@@ -15,12 +15,11 @@ object SparkKafkaContextTest {
   def main(args: Array[String]): Unit = {
     val skc = new SparkKafkaContext(
       new SparkConf().setMaster("local").setAppName("SparkKafkaContextTest"))
-    val kp =Map[String, String](
-      "metadata.broker.list" -> brokers,
-      "serializer.class" -> "kafka.serializer.StringEncoder",
-      "group.id" -> "group.id",
-      SparkKafkaContext.WRONG_FROM -> "last",//EARLIEST
-      SparkKafkaContext.CONSUMER_FROM -> "consum")
+    
+    val kp =SparkKafkaContext.getKafkaParam(
+        brokers,"groupid","last","consum","test,0,100|test,1,200|test,2,300")
+
+    
     val topics = Set("test")
     val kafkadataRdd = skc.kafkaRDD[((String, Int, Long), String)](kp, topics, msgHandle2)
     
