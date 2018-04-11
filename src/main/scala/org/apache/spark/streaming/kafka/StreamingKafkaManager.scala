@@ -21,7 +21,7 @@ import org.apache.spark.common.util.KafkaConfig
  * @description 用于spark streaming 读取kafka数据
  */
 private[spark] object StreamingKafkaManager
-    extends SparkKafkaManagerBase{
+    extends SparkKafkaManagerBase {
   logname = "StreamingKafkaManager"
   /**
    * @author LMQ
@@ -37,8 +37,7 @@ private[spark] object StreamingKafkaManager
     kp: Map[String, String],
     topics: Set[String],
     fromOffset: Map[TopicAndPartition, Long],
-    msghandle: (MessageAndMetadata[K, V]) => R = msgHandle
-    ): InputDStream[R] = {
+    msghandle: (MessageAndMetadata[K, V]) => R = msgHandle): InputDStream[R] = {
     if (kp == null || !kp.contains(GROUP_ID))
       throw new SparkException(s"kafkaParam is Null or ${GROUP_ID} is not setted")
     instance(kp)
@@ -73,8 +72,7 @@ private[spark] object StreamingKafkaManager
     ssc: StreamingContext,
     conf: KafkaConfig,
     fromOffset: Map[TopicAndPartition, Long],
-    msghandle: (MessageAndMetadata[K, V]) => R  = msgHandle
-    ): InputDStream[R] = {
+    msghandle: (MessageAndMetadata[K, V]) => R = msgHandle): InputDStream[R] = {
     if (conf.kpIsNull || conf.tpIsNull) {
       throw new SparkException(s"Configuration s kafkaParam is Null or Topics is not setted")
     }
@@ -94,7 +92,7 @@ private[spark] object StreamingKafkaManager
           case "LAST"     => getLatestOffsets(topics, kp)
           case "EARLIEST" => getEarliestOffsets(topics, kp)
           case "CONSUM"   => getConsumerOffset(kp, groupId, topics)
-          case "LAST"     => getLatestOffsets(topics, kp)
+          case _          => log.error(s"""${KAFKA_CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
         }
       } else fromOffset
     consumerOffsets.foreach(x => log.info(x.toString))
