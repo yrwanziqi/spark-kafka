@@ -30,6 +30,7 @@ class SparkKafkaContext {
   def broadcast[T: ClassTag](value: T) = {
     sparkcontext.broadcast(value)
   }
+
   /**
    * @author LMQ
    * @description 获取rdd的偏移量
@@ -59,7 +60,7 @@ class SparkKafkaContext {
     SparkContextKafkaManager.updateConsumerOffsets(kp, lastestOffsets)
     lastestOffsets
   }
-    /**
+  /**
    * @author LMQ
    * @description 将当前的topic的偏移量更新至最旧。
    * @return lastestOffsets ：返回最新的offset
@@ -201,5 +202,18 @@ class SparkKafkaContext {
   }
 }
 object SparkKafkaContext extends SparkKafkaConfsKey {
-
+  def getKafkaParam(
+    brokers: String,
+    groupid: String,
+    consumer_from: String,
+    wrong_from: String,
+    kafkaoffset: String) = {
+    Map[String, String](
+      SparkKafkaContext.BROKER -> brokers,
+      SparkKafkaContext.SERIALIZER -> "kafka.serializer.StringEncoder",
+      SparkKafkaContext.GROUPID -> groupid,
+      SparkKafkaContext.WRONG_FROM -> consumer_from, //EARLIEST
+      SparkKafkaContext.CONSUMER_FROM -> consumer_from, //如果是配置了CUSTOM。必须要配一个 kafka.offset的参数
+      SparkKafkaContext.KAFKAOFFSET -> kafkaoffset)
+  }
 }
