@@ -26,7 +26,7 @@ object StreamingKafkaContextTest {
       "metadata.broker.list" -> brokers,
       "serializer.class" -> "kafka.serializer.StringEncoder",
       "group.id" -> "testGroupid",
-      StreamingKafkaContext.WRONG_FROM -> "last",//EARLIEST
+      StreamingKafkaContext.WRONG_GROUP_FROM -> "last",//EARLIEST
       StreamingKafkaContext.CONSUMER_FROM -> "consum")
     val topics = Set("smartadsdeliverylog")
     val ds = ssc
