@@ -37,20 +37,20 @@ private[spark] object SparkContextKafkaManager
     topics: Set[String],
     fromOffset: Map[TopicAndPartition, Long],
     messageHandler: MessageAndMetadata[K, V] => R = msgHandle) = {
-    if (kp == null || !kp.contains(GROUP_ID))
-      throw new SparkException(s"kafkaParam is Null or ${GROUP_ID} is not setted")
+    if (kp == null || !kp.contains(GROUPID))
+      throw new SparkException(s"kafkaParam is Null or ${GROUPID} is not setted")
     instance(kp)
-    val groupId = kp.get(GROUP_ID).get
+    val groupId = kp.get(GROUPID).get
     val consumerOffsets: Map[TopicAndPartition, Long] =
       if (fromOffset == null) {
-        val last = if (kp.contains(KAFKA_CONSUMER_FROM)) kp.get(KAFKA_CONSUMER_FROM).get
+        val last = if (kp.contains(CONSUMER_FROM)) kp.get(CONSUMER_FROM).get
                    else defualtFrom
         last.toUpperCase match {
-          case "LAST"     => getLatestOffsets(topics, kp)
-          case "CONSUM"   => getConsumerOffset(kp, groupId, topics)
-          case "EARLIEST" => getEarliestOffsets(topics, kp)
-          case "CUSTOM"   => getSelfOffsets(kp)
-          case _          => log.info(s"""${KAFKA_CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
+          case LAST     => getLatestOffsets(topics, kp)
+          case CONSUM   => getConsumerOffset(kp, groupId, topics)
+          case EARLIEST => getEarliestOffsets(topics, kp)
+          case CUSTOM  => getSelfOffsets(kp)
+          case _          => log.info(s"""${CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
         }
       } else fromOffset
       
@@ -86,20 +86,20 @@ private[spark] object SparkContextKafkaManager
     fromOffset: Map[TopicAndPartition, Long],
     maxMessagesPerPartition: Int,
     messageHandler: MessageAndMetadata[K, V] => R = msgHandle) = {
-    if (kp == null || !kp.contains(GROUP_ID))
-      throw new SparkException(s"kafkaParam is Null or ${GROUP_ID} is not setted")
+    if (kp == null || !kp.contains(GROUPID))
+      throw new SparkException(s"kafkaParam is Null or ${GROUPID} is not setted")
     instance(kp)
-    val groupId = kp.get(GROUP_ID).get
+    val groupId = kp.get(GROUPID).get
     val consumerOffsets: Map[TopicAndPartition, Long] =
       if (fromOffset == null) {
-        val last = if (kp.contains(KAFKA_CONSUMER_FROM)) kp.get(KAFKA_CONSUMER_FROM).get
+        val last = if (kp.contains(CONSUMER_FROM)) kp.get(CONSUMER_FROM).get
         else defualtFrom
         last.toUpperCase match {
-          case "LAST"     => getLatestOffsets(topics, kp)
-          case "CONSUM"   => getConsumerOffset(kp, groupId, topics)
-          case "EARLIEST" => getEarliestOffsets(topics, kp)
-          case "CUSTOM"   => getSelfOffsets(kp)
-          case _          => log.info(s"""${KAFKA_CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
+          case LAST     => getLatestOffsets(topics, kp)
+          case CONSUM   => getConsumerOffset(kp, groupId, topics)
+          case EARLIEST => getEarliestOffsets(topics, kp)
+          case CUSTOM   => getSelfOffsets(kp)
+          case _          => log.info(s"""${CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
         }
       } else fromOffset
     val untilOffsets = clamp(latestLeaderOffsets(consumerOffsets), consumerOffsets, maxMessagesPerPartition)
@@ -124,7 +124,7 @@ private[spark] object SparkContextKafkaManager
    */
   private def getSelfOffsets(kp: Map[String, String]) = {
     var consumerOffsets = new HashMap[TopicAndPartition, Long]()
-    var todayOffsets = kp.get("kafka.offset").get.split('|')
+    var todayOffsets = kp.get(KAFKA_OFFSET).get.split('|')
     for (offset <- todayOffsets) {
       val offsets = offset.split(",")
       consumerOffsets.put(new TopicAndPartition(offsets(0), offsets(1).toInt), offsets(2).toLong)

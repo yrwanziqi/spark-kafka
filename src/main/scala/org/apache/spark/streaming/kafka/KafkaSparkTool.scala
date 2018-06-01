@@ -7,19 +7,19 @@ import org.apache.spark.rdd.RDD
 import java.util.Properties
 import org.apache.spark.Logging
 import org.slf4j.LoggerFactory
+import org.apache.spark.core.SparkKafkaConfsKey
+
 /**
  * @author LMQ
  * @description 读取kafka，操作offset等操作工具
  * @description 只用于spark包使用
  */
-private[spark] trait KafkaSparkTool {
+private[spark] trait KafkaSparkTool extends SparkKafkaConfsKey{
   var logname = "KafkaSparkTool" //外部可重写
   lazy val defualtFrom: String = "LAST"
   lazy val log = LoggerFactory.getLogger(logname)
   var kc: KafkaCluster = null
-  val GROUP_ID = "group.id"
-  val KAFKA_CONSUMER_FROM = "kafka.consumer.from" //kakfa读取起点(CONSUM / LAST / EARLIEST / CUSTOM)
-  val WRONG_GROUP_FROM = "wrong.groupid.from" //新用户或者过期用户 重新读取的点 （最新或者最旧）
+  //val WRONG_GROUP_FROM = "wrong.groupid.from" //新用户或者过期用户 重新读取的点 （最新或者最旧）
   val maxMessagesPerPartitionKEY = "spark.streaming.kafka.maxRatePerPartition"
   /**
    * @author LMQ
@@ -69,6 +69,7 @@ private[spark] trait KafkaSparkTool {
     }
     offsets
   }
+  
    /**
    * @author LMQ
    * @time 2018-04-04
@@ -142,8 +143,23 @@ private[spark] trait KafkaSparkTool {
   def updateConsumerOffsets(
     kp: Map[String, String],
     offsets: Map[TopicAndPartition, Long]): Unit = {
-    val groupId = kp.get(GROUP_ID).get
+    val groupId = kp.get(GROUPID).get
     updateConsumerOffsets(kp, groupId, offsets)
+  }
+    /**
+   * @author LMQ
+   * @description 更新消费者的offset至zookeeper
+   */
+  def updateConsumerOffsets(
+    kp: Map[String, String],
+    offsets: String): Unit = {
+    val groupId = kp.get(GROUPID).get
+    val offsetArr=offsets.split('|')
+                         .map { offsetStr => 
+                          val offsetArr=offsetStr.split(",")
+                          new TopicAndPartition(offsetArr(0), offsetArr(1).toInt)->offsetArr(2).toLong}
+                         .toMap
+    updateConsumerOffsets(kp, groupId, offsetArr)
   }
   /**
    * @author LMQ

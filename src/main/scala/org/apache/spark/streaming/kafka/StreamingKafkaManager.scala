@@ -38,19 +38,19 @@ private[spark] object StreamingKafkaManager
     topics: Set[String],
     fromOffset: Map[TopicAndPartition, Long],
     msghandle: (MessageAndMetadata[K, V]) => R = msgHandle): InputDStream[R] = {
-    if (kp == null || !kp.contains(GROUP_ID))
-      throw new SparkException(s"kafkaParam is Null or ${GROUP_ID} is not setted")
+    if (kp == null || !kp.contains(GROUPID))
+      throw new SparkException(s"kafkaParam is Null or ${GROUPID} is not setted")
     instance(kp)
-    val groupId = kp.get(GROUP_ID).get
+    val groupId = kp.get(GROUPID).get
     val consumerOffsets: Map[TopicAndPartition, Long] =
       if (fromOffset == null) {
-        val last = if (kp.contains(KAFKA_CONSUMER_FROM)) kp.get(KAFKA_CONSUMER_FROM).get
+        val last = if (kp.contains(CONSUMER_FROM)) kp.get(CONSUMER_FROM).get
         else defualtFrom
         last.toUpperCase match {
-          case "LAST"     => getLatestOffsets(topics, kp)
-          case "EARLIEST" => getEarliestOffsets(topics, kp)
-          case "CONSUM"   => getConsumerOffset(kp, groupId, topics)
-          case _          => log.error(s"""${KAFKA_CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
+          case LAST     => getLatestOffsets(topics, kp)
+          case EARLIEST => getEarliestOffsets(topics, kp)
+          case CONSUM   => getConsumerOffset(kp, groupId, topics)
+          case _          => log.error(s"""${CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
         }
       } else fromOffset
     consumerOffsets.foreach(x => log.info(x.toString))
@@ -77,22 +77,22 @@ private[spark] object StreamingKafkaManager
       throw new SparkException(s"Configuration s kafkaParam is Null or Topics is not setted")
     }
     val kp = conf.getKafkaParams()
-    if (!kp.contains(GROUP_ID) && !conf.containsKey(GROUP_ID))
-      throw new SparkException(s"Configuration s kafkaParam is Null or ${GROUP_ID} is not setted")
+    if (!kp.contains(GROUPID) && !conf.containsKey(GROUPID))
+      throw new SparkException(s"Configuration s kafkaParam is Null or ${GROUPID} is not setted")
     instance(kp)
-    val groupId = if (kp.contains(GROUP_ID)) kp.get(GROUP_ID).get
-    else conf.get(GROUP_ID)
+    val groupId = if (kp.contains(GROUPID)) kp.get(GROUPID).get
+    else conf.get(GROUPID)
     val topics = conf.topics
     val consumerOffsets: Map[TopicAndPartition, Long] =
       if (fromOffset == null) {
-        val last = if (kp.contains(KAFKA_CONSUMER_FROM)) kp.get(KAFKA_CONSUMER_FROM).get
-        else if (conf.containsKey(KAFKA_CONSUMER_FROM)) conf.get(KAFKA_CONSUMER_FROM)
+        val last = if (kp.contains(CONSUMER_FROM)) kp.get(CONSUMER_FROM).get
+        else if (conf.containsKey(CONSUMER_FROM)) conf.get(CONSUMER_FROM)
         else defualtFrom
         last.toUpperCase match {
-          case "LAST"     => getLatestOffsets(topics, kp)
-          case "EARLIEST" => getEarliestOffsets(topics, kp)
-          case "CONSUM"   => getConsumerOffset(kp, groupId, topics)
-          case _          => log.error(s"""${KAFKA_CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
+          case LAST     => getLatestOffsets(topics, kp)
+          case EARLIEST => getEarliestOffsets(topics, kp)
+          case CONSUM   => getConsumerOffset(kp, groupId, topics)
+          case _          => log.error(s"""${CONSUMER_FROM} must LAST or CONSUM,defualt is LAST"""); getLatestOffsets(topics, kp)
         }
       } else fromOffset
     consumerOffsets.foreach(x => log.info(x.toString))

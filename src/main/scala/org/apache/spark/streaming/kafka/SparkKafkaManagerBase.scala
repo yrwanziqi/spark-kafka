@@ -5,6 +5,11 @@ import org.apache.spark.rdd.RDD
 import kafka.common.TopicAndPartition
 
 trait SparkKafkaManagerBase extends KafkaSparkTool{
+  val LAST="LAST"
+  val CONSUM="CONSUM"
+  val EARLIEST="EARLIEST"
+  val CUSTOM="CUSTOM"
+  val KAFKA_OFFSET="kafka.offset"
    /**
    * @author LMQ
    * @description  默认的一个handle (key,value)=>(topic,msg)
