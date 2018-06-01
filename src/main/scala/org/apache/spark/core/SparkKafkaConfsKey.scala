@@ -14,4 +14,5 @@ trait SparkKafkaConfsKey {
    val CONSUMER_FROM="kafka.consumer.from"
    
    val KAFKAOFFSET="kafka.offset"
+   val MAX_RATE_PER_PARTITION="spark.streaming.kafka.maxRatePerPartition"
 }
