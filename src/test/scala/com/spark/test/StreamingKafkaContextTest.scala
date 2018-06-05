@@ -47,10 +47,14 @@ object StreamingKafkaContextTest {
    * 使用配置文件的形式
    */
   def runJobWithConf() {
-    val conf = new ConfigurationTest()
-    ConfigurationFactoryTool.initConf("conf/config.properties", conf)
-    initJobConf(conf)
-    println(conf.getKV())
+    var kp = Map[String, String](
+      "metadata.broker.list" -> brokers,
+      "serializer.class" -> "kafka.serializer.StringEncoder",
+      "group.id" -> "group.id",
+      "kafka.last.consum" -> "last")
+    val conf = new KafkaConfig("conf/config.properties",kp)
+    val topics = Set("test")
+    conf.setTopics(topics)
     val scf = new SparkConf().setMaster("local[2]").setAppName("Test")
     val sc = new SparkContext(scf)
     val ssc = new StreamingKafkaContext(sc, Seconds(5))

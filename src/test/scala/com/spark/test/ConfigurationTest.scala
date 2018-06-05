@@ -2,6 +2,8 @@ package com.spark.test
 
 import org.apache.spark.common.util.KafkaConfig
 
-class ConfigurationTest extends KafkaConfig{
-  
+object ConfigurationTest{
+  def main(args: Array[String]): Unit = {
+    val kconf=new KafkaConfig("",Map(""->""))
+  }
 }

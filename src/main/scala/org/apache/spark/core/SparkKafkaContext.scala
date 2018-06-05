@@ -27,6 +27,13 @@ class SparkKafkaContext {
     this()
     sparkcontext = new SparkContext(conf)
   }
+  def this(master:String,appName:String){
+    this()
+    val conf=new SparkConf()
+    conf.setMaster(master)
+    conf.setAppName(appName)
+    sparkcontext = new SparkContext(conf)
+  }
   def broadcast[T: ClassTag](value: T) = {
     sparkcontext.broadcast(value)
   }

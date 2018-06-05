@@ -3,7 +3,6 @@ package com.spark.test
 import org.apache.spark.core.SparkKafkaContext
 import org.apache.spark.SparkConf
 import kafka.serializer.StringDecoder
-import org.apache.spark.streaming.kafka.KafkaUtil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.kafka.SparkKafkaUtil
 
