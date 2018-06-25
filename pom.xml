@@ -31,18 +31,37 @@
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-core_2.10</artifactId>
-			<version>1.6.0</version>
+			<version>1.3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming_2.10</artifactId>
-			<version>1.6.0</version>
+			<version>1.3.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming-kafka_2.10</artifactId>
-			<version>1.6.0</version>
+			<version>1.3.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>kafka_2.10</artifactId>
+					<groupId>org.apache.kafka</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
+			<!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
+		 <dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka_2.10</artifactId>
+			<version>0.8.2.0</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>kafka-clients</artifactId>
+					<groupId>org.apache.kafka</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- 如果集群环境是10的话，发送代码用10的client来发送 -->
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
