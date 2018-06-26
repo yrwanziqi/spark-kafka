@@ -219,7 +219,7 @@ object SparkKafkaContext extends SparkKafkaConfsKey {
       SparkKafkaContext.BROKER -> brokers,
       SparkKafkaContext.SERIALIZER -> "kafka.serializer.StringEncoder",
       SparkKafkaContext.GROUPID -> groupid,
-      SparkKafkaContext.WRONG_GROUP_FROM -> consumer_from, //EARLIEST
+      SparkKafkaContext.WRONG_GROUP_FROM -> wrong_from, //EARLIEST
       SparkKafkaContext.CONSUMER_FROM -> consumer_from, //如果是配置了CUSTOM。必须要配一个 kafka.offset的参数
       SparkKafkaContext.KAFKAOFFSET -> kafkaoffset)
   }
